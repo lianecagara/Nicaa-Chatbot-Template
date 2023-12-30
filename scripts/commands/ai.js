@@ -1,5 +1,3 @@
-//@Jenica: this ai command is no longer working, please update it with a working api endpoint.
-
 const axios = require("axios");
 
 module.exports = {
@@ -7,23 +5,25 @@ module.exports = {
         name: "ai",
         description: "Interact with an AI to get responses to your questions.",
         usage: ":ai <question>"
+        author: "Rui"
+    },
 
-    }, 
+    run: async (context) => {
+        const { api, event } = context;
+        const args = event.body.slice(":ai".length).trim(); // Extract the arguments after ":ai"
 
-    onCommand: async ({ api, event, args, box }) => {
-        const question = args.join(" ");
-
-        if (question) {
+        // Check if there are any arguments
+        if (args) {
             try {
-                const response = await axios.get(`https://hercai.onrender.com/v2/hercai?question=${encodeURIComponent(question)}`);
+                const response = await axios.get(`https://hercai.onrender.com/v3-beta/hercai?question=${encodeURIComponent(args)}`);
                 const aiResponse = response.data.reply;
-                box.send(aiResponse);
+                api.sendMessage("🤖 GPT4: \n" + aiResponse + "\n\n GPT4 Provided by Herc.ai", event.threadID, event.messageID);
             } catch (error) {
                 console.error("Error fetching AI response:", error);
-                box.reply("Failed to get AI response. Please try again later.");
+                api.sendMessage("Failed to get AI response. Please try again later.", event.threadID, event.messageID);
             }
         } else {
-            box.reply("Please provide a question after the command. For example: `:ai Hello`");
+            api.sendMessage("Please provide a question after the command. For example: `:ai Hello`", event.threadID, event.messageID);
         }
     }
 };
